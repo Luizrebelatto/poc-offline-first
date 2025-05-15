@@ -1,12 +1,10 @@
-// Simulated API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-// Simulated server storage
 let serverTodos: any[] = []
 
 export const api = {
   async fetchTodos() {
-    await delay(1000) // Simulate network delay
+    await delay(1000)
     return serverTodos
   },
 
