@@ -1,4 +1,4 @@
-package com.pocofflinefirst
+package com.anonymous.pocofflinefirst
 
 import android.os.Build
 import android.os.Bundle

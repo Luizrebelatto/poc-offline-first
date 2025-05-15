@@ -1,4 +1,4 @@
-package com.pocofflinefirst
+package com.anonymous.pocofflinefirst
 
 import android.app.Application
 import android.content.res.Configuration
