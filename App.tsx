@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { database } from './src/database';
 import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider';
-import { Q } from '@nozbe/watermelondb';
 import { syncService } from './src/services/sync';
 import Todo from './src/database/models/Todo';
 
@@ -24,8 +23,7 @@ function App() {
 
   useEffect(() => {
     loadTodos();
-    // Set up periodic sync
-    const syncInterval = setInterval(sync, 30000); // Sync every 30 seconds
+    const syncInterval = setInterval(sync, 30000);
     return () => clearInterval(syncInterval);
   }, []);
 
