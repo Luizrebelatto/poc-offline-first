@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,43 +8,85 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
+import { database } from './src/database';
+import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider';
+import { Q } from '@nozbe/watermelondb';
+import { syncService } from './src/services/sync';
+import Todo from './src/database/models/Todo';
 
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-export default function App() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+function App() {
   const [text, setText] = useState('');
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const addTodo = () => {
+  useEffect(() => {
+    loadTodos();
+    // Set up periodic sync
+    const syncInterval = setInterval(sync, 30000); // Sync every 30 seconds
+    return () => clearInterval(syncInterval);
+  }, []);
+
+  const loadTodos = async () => {
+    const todosCollection = database.collections.get('todos');
+    const todosList = await todosCollection.query().fetch() as Todo[];
+    setTodos(todosList);
+    setIsLoading(false);
+  };
+
+  const sync = async () => {
+    setIsSyncing(true);
+    try {
+      await syncService.sync();
+      await loadTodos();
+    } catch (error) {
+      console.error('Sync failed:', error);
+    }
+    setIsSyncing(false);
+  };
+
+  const addTodo = async () => {
     if (text.trim().length === 0) return;
-    
-    setTodos([
-      ...todos,
-      {
-        id: Date.now().toString(),
-        text: text.trim(),
-        completed: false,
-      },
-    ]);
+
+    const todosCollection = database.collections.get('todos');
+    await database.write(async () => {
+      await todosCollection.create((todo: Todo) => {
+        todo.text = text.trim();
+        todo.completed = false;
+        todo.isSynced = false;
+      });
+    });
+
     setText('');
+    await loadTodos();
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+  const toggleTodo = async (todo: Todo) => {
+    await database.write(async () => {
+      await todo.update(record => {
+        record.completed = !record.completed;
+        record.isSynced = false;
+      });
+    });
+    await loadTodos();
+  };
+
+  const deleteTodo = async (todo: Todo) => {
+    await database.write(async () => {
+      await todo.destroyPermanently();
+    });
+    await loadTodos();
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
     );
-  };
-
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
+  }
 
   return (
     <KeyboardAvoidingView
@@ -53,6 +95,9 @@ export default function App() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>My Todo List</Text>
+        {isSyncing && (
+          <ActivityIndicator size="small" color="white" style={styles.syncIndicator} />
+        )}
       </View>
 
       <View style={styles.inputContainer}>
@@ -75,7 +120,7 @@ export default function App() {
           <View style={styles.todoItem}>
             <TouchableOpacity
               style={styles.todoTextContainer}
-              onPress={() => toggleTodo(item.id)}
+              onPress={() => toggleTodo(item)}
             >
               <View style={[styles.checkbox, item.completed && styles.checked]} />
               <Text
@@ -89,7 +134,7 @@ export default function App() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => deleteTodo(item.id)}
+              onPress={() => deleteTodo(item)}
             >
               <Text style={styles.deleteButtonText}>×</Text>
             </TouchableOpacity>
@@ -105,16 +150,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
   header: {
     padding: 20,
     backgroundColor: '#4CAF50',
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+  },
+  syncIndicator: {
+    marginLeft: 10,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -184,3 +241,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default withDatabase(App);
