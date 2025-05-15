@@ -22,7 +22,7 @@ export const api = {
 
   async updateTodo(id: string, updates: { text?: string; completed?: boolean }) {
     await delay(1000)
-    const todo = serverTodos.find(t => t.id === id)
+    const todo = serverTodos.find(task => task.id === id)
     if (todo) {
       Object.assign(todo, { ...updates, updated_at: Date.now() })
       return todo
@@ -32,7 +32,7 @@ export const api = {
 
   async deleteTodo(id: string) {
     await delay(1000)
-    const index = serverTodos.findIndex(t => t.id === id)
+    const index = serverTodos.findIndex(task => task.id === id)
     if (index !== -1) {
       serverTodos.splice(index, 1)
       return true

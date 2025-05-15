@@ -6,22 +6,18 @@ export const syncService = {
   async sync() {
     const todosCollection = database.collections.get('todos')
     
-    // Fetch local changes
     const localChanges = await todosCollection
       .query(Q.where('is_synced', false))
       .fetch()
 
-    // Sync local changes to server
     for (const todo of localChanges) {
       try {
         if (todo.serverId) {
-          // Update existing todo
           await api.updateTodo(todo.serverId, {
             text: todo.text,
             completed: todo.completed,
           })
         } else {
-          // Create new todo
           const serverTodo = await api.createTodo({
             text: todo.text,
             completed: todo.completed,
@@ -38,10 +34,8 @@ export const syncService = {
       }
     }
 
-    // Fetch server changes
     const serverTodos = await api.fetchTodos()
     
-    // Update local database with server changes
     await database.write(async () => {
       for (const serverTodo of serverTodos) {
         const localTodo = await todosCollection
