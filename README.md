@@ -23,4 +23,9 @@ WatermelonDB is a powerful local database for React Native applications that pro
 - TypeScript support
 - Automatic synchronization capabilities
 
-## Architecture
+## Video
+
+
+https://github.com/user-attachments/assets/092593af-5070-455f-9a88-5f0b26572b26
+
+
