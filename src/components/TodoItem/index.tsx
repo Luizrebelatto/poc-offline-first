@@ -11,7 +11,7 @@ interface IActionButton {
 }
 
 export default function TodoItem({ loadTodos, item }: IActionButton) {
-    const toggleTodo = async (todo: Todo) => {
+    const markTodo = async (todo: Todo) => {
         await database.write(async () => {
           await todo.update(record => {
             record.completed = !record.completed;
@@ -32,7 +32,7 @@ export default function TodoItem({ loadTodos, item }: IActionButton) {
         <View style={styles.todoItem}>
             <TouchableOpacity
               style={styles.todoTextContainer}
-              onPress={() => toggleTodo(item)}
+              onPress={() => markTodo(item)}
             >
               <View style={[styles.checkbox, item.completed && styles.checked]} />
               <Text

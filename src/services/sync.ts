@@ -43,7 +43,6 @@ export const syncService = {
           .fetch()
 
         if (localTodo.length === 0) {
-          // Create new local todo
           await todosCollection.create(todo => {
             todo.text = allTodos.text
             todo.completed = allTodos.completed
@@ -51,7 +50,6 @@ export const syncService = {
             todo.isSynced = true
           })
         } else {
-          // Update existing local todo
           const todo = localTodo[0]
           if (todo.updatedAt.getTime() < allTodos.updated_at) {
             await todo.update(record => {
