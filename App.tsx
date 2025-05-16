@@ -14,6 +14,7 @@ import { database } from './src/database';
 import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider';
 import { syncService } from './src/services/sync';
 import Todo from './src/database/models/Todo';
+import ActionButton from './src/components/ActionButton';
 
 function App() {
   const [text, setText] = useState('');
@@ -106,9 +107,11 @@ function App() {
           placeholder="Add a new task..."
           placeholderTextColor="#666"
         />
-        <TouchableOpacity style={styles.addButton} onPress={addTodo}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
+        <ActionButton
+          onPress={addTodo}
+          text='Add'
+          type='add'
+        />
       </View>
 
       <FlatList
@@ -130,12 +133,11 @@ function App() {
                 {item.text}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
+            <ActionButton
+              text='x'
+              type='delete'
               onPress={() => deleteTodo(item)}
-            >
-              <Text style={styles.deleteButtonText}>×</Text>
-            </TouchableOpacity>
+            />
           </View>
         )}
       />
@@ -187,17 +189,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
     color: '#333',
   },
-  addButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,14 +220,6 @@ const styles = StyleSheet.create({
   completedText: {
     textDecorationLine: 'line-through',
     color: '#888',
-  },
-  deleteButton: {
-    padding: 5,
-  },
-  deleteButtonText: {
-    fontSize: 24,
-    color: '#ff4444',
-    fontWeight: 'bold',
   },
 });
 
