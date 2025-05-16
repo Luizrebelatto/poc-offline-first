@@ -18,13 +18,13 @@ export const syncService = {
             completed: todo.completed,
           })
         } else {
-          const serverTodo = await api.createTodo({
+          const allTodos = await api.createTodo({
             text: todo.text,
             completed: todo.completed,
           })
           await database.write(async () => {
             await todo.update(record => {
-              record.serverId = serverTodo.id
+              record.serverId = allTodos.id
               record.isSynced = true
             })
           })
@@ -34,29 +34,29 @@ export const syncService = {
       }
     }
 
-    const serverTodos = await api.fetchTodos()
+    const allTodoss = await api.fetchTodos()
     
     await database.write(async () => {
-      for (const serverTodo of serverTodos) {
+      for (const allTodos of allTodoss) {
         const localTodo = await todosCollection
-          .query(Q.where('server_id', serverTodo.id))
+          .query(Q.where('server_id', allTodos.id))
           .fetch()
 
         if (localTodo.length === 0) {
           // Create new local todo
           await todosCollection.create(todo => {
-            todo.text = serverTodo.text
-            todo.completed = serverTodo.completed
-            todo.serverId = serverTodo.id
+            todo.text = allTodos.text
+            todo.completed = allTodos.completed
+            todo.serverId = allTodos.id
             todo.isSynced = true
           })
         } else {
           // Update existing local todo
           const todo = localTodo[0]
-          if (todo.updatedAt.getTime() < serverTodo.updated_at) {
+          if (todo.updatedAt.getTime() < allTodos.updated_at) {
             await todo.update(record => {
-              record.text = serverTodo.text
-              record.completed = serverTodo.completed
+              record.text = allTodos.text
+              record.completed = allTodos.completed
               record.isSynced = true
             })
           }

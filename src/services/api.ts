@@ -1,11 +1,11 @@
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-let serverTodos: any[] = []
+let allTodos: any[] = []
 
 export const api = {
   async fetchTodos() {
     await delay(1000)
-    return serverTodos
+    return allTodos
   },
 
   async createTodo(todo: { text: string; completed: boolean }) {
@@ -16,13 +16,13 @@ export const api = {
       created_at: Date.now(),
       updated_at: Date.now(),
     }
-    serverTodos.push(newTodo)
+    allTodos.push(newTodo)
     return newTodo
   },
 
   async updateTodo(id: string, updates: { text?: string; completed?: boolean }) {
     await delay(1000)
-    const todo = serverTodos.find(task => task.id === id)
+    const todo = allTodos.find(task => task.id === id)
     if (todo) {
       Object.assign(todo, { ...updates, updated_at: Date.now() })
       return todo
@@ -32,9 +32,9 @@ export const api = {
 
   async deleteTodo(id: string) {
     await delay(1000)
-    const index = serverTodos.findIndex(task => task.id === id)
+    const index = allTodos.findIndex(task => task.id === id)
     if (index !== -1) {
-      serverTodos.splice(index, 1)
+      allTodos.splice(index, 1)
       return true
     }
     throw new Error('Todo not found')
