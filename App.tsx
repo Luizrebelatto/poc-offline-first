@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +14,7 @@ import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider';
 import { syncService } from './src/services/sync';
 import Todo from './src/database/models/Todo';
 import ActionButton from './src/components/ActionButton';
+import TodoItem from './src/components/TodoItem';
 
 function App() {
   const [text, setText] = useState('');
@@ -62,23 +62,6 @@ function App() {
     await loadTodos();
   };
 
-  const toggleTodo = async (todo: Todo) => {
-    await database.write(async () => {
-      await todo.update(record => {
-        record.completed = !record.completed;
-        record.isSynced = false;
-      });
-    });
-    await loadTodos();
-  };
-
-  const deleteTodo = async (todo: Todo) => {
-    await database.write(async () => {
-      await todo.destroyPermanently();
-    });
-    await loadTodos();
-  };
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -117,29 +100,7 @@ function App() {
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.todoItem}>
-            <TouchableOpacity
-              style={styles.todoTextContainer}
-              onPress={() => toggleTodo(item)}
-            >
-              <View style={[styles.checkbox, item.completed && styles.checked]} />
-              <Text
-                style={[
-                  styles.todoText,
-                  item.completed && styles.completedText,
-                ]}
-              >
-                {item.text}
-              </Text>
-            </TouchableOpacity>
-            <ActionButton
-              text='x'
-              type='delete'
-              onPress={() => deleteTodo(item)}
-            />
-          </View>
-        )}
+        renderItem={({ item }) => <TodoItem item={item} loadTodos={loadTodos}/>}
       />
     </KeyboardAvoidingView>
   );
@@ -188,38 +149,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginRight: 10,
     color: '#333',
-  },
-  todoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  todoTextContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    marginRight: 10,
-  },
-  checked: {
-    backgroundColor: '#4CAF50',
-  },
-  todoText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  completedText: {
-    textDecorationLine: 'line-through',
-    color: '#888',
   },
 });
 
